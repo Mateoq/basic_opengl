@@ -1,0 +1,148 @@
+#include <iostream>
+#include <SDL.h>
+
+const int width = 800;
+const int height = 600;
+SDL_Window* window;
+SDL_Renderer* renderer;
+SDL_Rect playerPos;
+
+bool initEverything();
+bool initSDL();
+bool createWindow();
+bool createRenderer();
+void setupRenderer();
+
+void render();
+void runGame();
+
+int main(int argc, char* args[]) {
+  if(!initEverything()) {
+    return -1;
+  }
+
+  // Initialize player
+  playerPos.x = 20;
+  playerPos.y = 20;
+  playerPos.w = 20;
+  playerPos.h = 20;
+
+  runGame();
+  return 0;
+}
+
+
+void render() {
+  // Clrear the window and make it all black
+  SDL_RenderClear(renderer);
+
+  // Change color to blue
+  SDL_SetRenderDrawColor(renderer, 0, 180, 180, 255);
+
+  // Render player
+  SDL_RenderFillRect(renderer, &playerPos);
+
+  // Set color of the renderer to black
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+  // Render the changes above (which up until now judt happened behind the scenes)
+  SDL_RenderPresent(renderer);
+}
+
+bool initEverything() {
+  if(!initSDL()){
+    return false;
+  }
+
+  if(!createWindow()) {
+    return false;
+  }
+
+  if(!createRenderer()) {
+    return false;
+  }
+
+  setupRenderer();
+  return true;
+}
+
+bool initSDL() {
+  bool result = true;
+  // Initialize SDL
+  if(SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+    // Something failed, print error and exit
+    std::cout << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
+    result = false;
+  }
+  return result;
+}
+
+bool createWindow() {
+  bool result = true;
+  // Create and init the window
+  window = SDL_CreateWindow("Server", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0);
+
+  if(window == nullptr) {
+    std::cout << "Failed to create window: " << SDL_GetError() << std::endl;
+    result = false;
+  }
+
+  return result;
+}
+
+bool createRenderer() {
+  bool result = true;
+  // Create and init the renderer
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+  if(renderer == nullptr) {
+    std::cout << "Failed to create renderer: " << SDL_GetError() << std::endl;
+    result = false;
+  }
+
+  return result;
+}
+
+void setupRenderer() {
+  // Set size of renderer to the same as window
+  SDL_RenderSetLogicalSize(renderer, width, height);
+
+  // Set color of renderer to black
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+}
+
+void runGame() {
+  bool running = true;
+
+  while(running) {
+    SDL_Event event;
+    while(SDL_PollEvent(&event)) {
+      if(event.type == SDL_QUIT) {
+        running = false;
+      } else if(event.type == SDL_KEYDOWN) {
+        switch(event.key.keysym.sym) {
+        case SDLK_RIGHT:
+          ++playerPos.x;
+          break;
+        case SDLK_LEFT:
+          --playerPos.x;
+          break;
+        case SDLK_DOWN:
+          ++playerPos.y;
+          break;
+        case SDLK_UP:
+          --playerPos.y;
+          break;
+        default:
+          break;
+        }
+      }
+    }
+
+    render();
+
+    // Add a 16ms delay to maker our game run at ~60fps
+    SDL_Delay(16);
+  }
+}
+
