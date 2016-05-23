@@ -1,0 +1,15 @@
+#include "Shader.h"
+
+std::string Shader::readFile(const char* file) {
+  // Open file
+  std::ifstream t(file);
+
+  // Read file ino buffer
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+
+  // Make a std::string and fill it with the contents of buffer
+  std::string fileContent = buffer.str();
+
+  return fileContent;
+}

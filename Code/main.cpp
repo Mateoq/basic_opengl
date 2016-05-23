@@ -6,17 +6,8 @@
 #include <SDL/SDL.h>
 #include <glad/glad.h>
 
+#include "Types.h"
 #include "Shader.h"
-
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
 
 std::string gameName = "OpenGL Game";
 
@@ -55,7 +46,7 @@ static GLfloat colors[points][floatsPerColor] = {
 GLuint vbo[2], vao[1];
 
 // The positions of the vertices and colors data within th VAO
-static uint32 positionAttributeIndez = 0;
+static uint32 positionAttributeIndex = 0;
 static uint32 colorAttributeIndex = 1;
 
 // Wrapper to simplify the shader code
@@ -78,6 +69,21 @@ int main(int argc, char* args[]) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   SDL_GL_SwapWindow(mainWindow);
+
+  std::cout << "Setting up VBO + VAO..." << std::endl;
+
+  if(!setupBufferObjects()) {
+    return -1;
+  }
+
+  std::cout << "Rendering..." << std::endl;
+  render();
+
+  std::cout << "Rendering done!" << std::endl;
+  std::cin.ignore();
+
+  cleanUp();
+  
   return 0;
 }
 
@@ -102,10 +108,10 @@ bool init() {
     return false;
   }
 
+  setOpenGLAttributes();
+
   // Create openGL context and attach it to the window
   mainContext = SDL_GL_CreateContext(mainWindow);
-
-  setOpenGLAttributes();
 
   // Make buffer swap syncronized with monitor's vertical refesh
   SDL_GL_SetSwapInterval(1);
@@ -153,7 +159,7 @@ void render() {
   // Second, enable the colors and draw a solid square
   // =========================================
   // Enable attribute within the current VAO
-  glEnableVeertexAttribArray(colorAttributeIndex);
+  glEnableVertexAttribArray(colorAttributeIndex);
 
   // Make background white
   glClearColor(1.0, 1.0, 1.0, 1.0);
@@ -182,10 +188,45 @@ bool setupBufferObjects() {
   glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
   // Copy the vertex data from square to the buffer
-  
+  glBufferData(GL_ARRAY_BUFFER, (points * floatsPerPoint) * sizeof(GLfloat), square, GL_STATIC_DRAW);
+
+  // Specify that the coordinates data is going into attribute index 0, and contains three floats per vertex
+  glVertexAttribPointer(positionAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+  // Enable atrribute within the current VAO
+  glEnableVertexAttribArray(positionAttributeIndex);
+
+  // Colors
+  // ================================
+  glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+
+  // Copy the vertex data from colors to the buffer
+  glBufferData(GL_ARRAY_BUFFER, (points * floatsPerColor) * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+
+  // Specify That The Data Is Going Into Attribute Index 1 and contains 4 floats per vertex
+  glVertexAttribPointer(colorAttributeIndex, 4, GL_FLOAT, GL_FALSE, 0, 0);
+
+  // NOTE; colors are not enabled here
+
+  // Set up shader
+  if(!shader.init()) {
+    return false;
+  }
+
+  shader.useProgram();
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  return true;
 }
 
 void cleanUp() {
+  shader.cleanUp();
+
+  glDisableVertexAttribArray(0);
+  glDeleteBuffers(1, vbo);
+  glDeleteVertexArrays(1, vao);
+  
   // Delete OpenGL context
   SDL_GL_DeleteContext(mainContext);
 

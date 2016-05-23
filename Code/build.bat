@@ -22,5 +22,5 @@ if not defined DevEnvDir (
 
 robocopy %LIBDIR% . *.dll
 
-cl -FC -Zi /EHsc  ..\Code\main.cpp -I%INCDIR% %SDL2_LIBDIR%\SDL2.lib %SDL2_LIBDIR%\SDL2main.lib %LIBDIR%\glad.c  -link /machine:%TARGET% -subsystem:CONSOLE
+cl -FC -Zi /EHsc /MP  ..\Code\main.cpp ..\Code\Shader.cpp -I%INCDIR% %SDL2_LIBDIR%\SDL2.lib %SDL2_LIBDIR%\SDL2main.lib %LIBDIR%\glad.c  -link /machine:%TARGET% -subsystem:CONSOLE
 popd
