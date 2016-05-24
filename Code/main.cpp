@@ -43,7 +43,8 @@ static GLfloat colors[points][floatsPerColor] = {
 };
 
 // Create variables for storing the ID of our VAO and VBO
-GLuint vbo[2], vao[1];
+GLuint vbo[] = {0, 0};
+GLuint vao[] = {0};
 
 // The positions of the vertices and colors data within th VAO
 static uint32 positionAttributeIndex = 0;
@@ -120,6 +121,9 @@ bool init() {
   if(!gladLoadGL()){
     std::cout << "glad couldn't be loaded!\n";
     return false;
+  } else {
+    printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION),
+	   glGetString(GL_SHADING_LANGUAGE_VERSION));
   }
 
   return true;

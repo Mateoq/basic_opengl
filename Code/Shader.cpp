@@ -50,16 +50,16 @@ bool Shader::loadVertexShader(const std::string& filename) {
 
   // Read file as std::string
   std::string str = readFile(filename.c_str());
-  const char* contentsPtr = str.c_str();
+  //const char* contentsPtr = str.c_str();
   // c_srt() returns a const char*, convert it to a non-const one
-  // char* src = const_cast<char *>(str.c_str());
+  const char* src = str.c_str();
   int32 size = str.length();
 
   // Create an empty vertex shader handler
   vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
   // Send the vertex shader source code to OpenGL
-  glShaderSource(vertexShader, 1, contentsPtr, &size);
+  glShaderSource(vertexShader, 1, &src, nullptr);
 
   // Compile the vertex shader
   glCompileShader(vertexShader);
@@ -83,14 +83,14 @@ bool Shader::loadFragmentShader(const std::string& filename) {
   std::string str = readFile(filename.c_str());
 
   // c_srt() returns a const char*, convert it to a non-const one
-  char* src = const_cast<char *>(str.c_str());
+  const char* src = str.c_str();
   int32 size = str.length();
 
   // Create an empty fragment shader handler
   fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
   // Send the fragment shader source code to OpenGL
-  glShaderSource(fragmentShader, 1, &src, &size);
+  glShaderSource(fragmentShader, 1, &src, nullptr);
 
   // Compile the vertex shader
   glCompileShader(fragmentShader);
