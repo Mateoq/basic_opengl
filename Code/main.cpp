@@ -43,8 +43,8 @@ static GLfloat colors[points][floatsPerColor] = {
 };
 
 // Create variables for storing the ID of our VAO and VBO
-GLuint vbo[] = {0, 0};
-GLuint vao[] = {0};
+GLuint vbo[2];
+GLuint vao[1];
 
 // The positions of the vertices and colors data within th VAO
 static uint32 positionAttributeIndex = 0;

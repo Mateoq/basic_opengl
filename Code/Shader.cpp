@@ -67,7 +67,7 @@ bool Shader::loadVertexShader(const std::string& filename) {
   int wasCompiled = 0;
   glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &wasCompiled);
 
-  if(wasCompiled == 0) {
+  if(wasCompiled == GL_FALSE) {
     printShaderCompilationErrorInfo(vertexShader);
     return false;
   }
@@ -136,15 +136,13 @@ void Shader::printShaderLinkingError(int32 shaderId) {
   std::cout << "Info Length: " << maxLength << std::endl;
 
   // Get shader info log
-  char* shaderProgramInfoLog = new char[maxLength];
-  glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, shaderProgramInfoLog);
+  std::vector<GLchar> shaderProgramInfoLog(maxLength);
+  glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &shaderProgramInfoLog[0]);
 
-  std::cout << "Linker error message: " << shaderProgramInfoLog << std::endl;
-
+  std::printf("\tLinker error message: %s\n", &(shaderProgramInfoLog[0]));
   // Handle the error in an appropiate way such as displaying a message
   // or writing to a log file.
   // In this simple program, we'll just leave
-  delete shaderProgramInfoLog;
   return;
 }
 
@@ -153,17 +151,18 @@ void Shader::printShaderCompilationErrorInfo(int32 shaderId) {
   std::cout << "Shader compilation failed: " << std::endl;
 
   // Find length of shader info log
-  int maxLength;
+  GLint maxLength = 0;
   glGetProgramiv(shaderId, GL_INFO_LOG_LENGTH, &maxLength);
 
   // Get shader info log
-  char* shaderInfoLog = new char[maxLength];
-  glGetShaderInfoLog(shaderProgram, maxLength, &maxLength, shaderInfoLog);
+  std::vector<GLchar> shaderInfoLog(maxLength);
+  glGetShaderInfoLog(shaderId, maxLength, &maxLength, &shaderInfoLog[0]);
+
+  glDeleteShader(shaderId);
 
   // Print shader info log
-  std::cout << "\tError info: " << shaderInfoLog << std::endl;
+  std::printf("\tError info: %s\n", &(shaderInfoLog[0]));
   std::cout << "=================================================\n\n";
-  delete shaderInfoLog;
 }
 
 void Shader::cleanUp() {

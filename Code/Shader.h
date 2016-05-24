@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <SDL/SDL.h>
 
+#include <vector>
 #include <string>
 #include <sstream>
 #include <fstream>
