@@ -13,27 +13,25 @@
 
 class Shader {
  public:
-  std::string readFile(const char* file);
-
-  void bindAttributeLocation(int index, const std::string& attribute);
-
-  void useProgram();
-
   bool init();
-
-  bool loadVertexShader(const std::string& filename);
-  bool loadFragmentShader(const std::string& filename);
-
-  bool linkShaders();
-
-  void printShaderLinkingError(int32 shaderId);
-  void printShaderCompilationErrorInfo(int32 shaderId);
-
+  bool loadShader(const std::string& fileName, GLenum shaderType);
+  void useProgram();
+  void bindAttributeLocation(int index, const std::string& attribute);
   void cleanUp();
+
+ private:
+  // Tries to compile the shader. Returns false if something fails
+  bool tryCompileShader(GLuint shaderId);
+  // Create shader and set the source
+  int createShader(const std::string& fileName, GLenum shaderType);
+  bool linkShaders();
+  std::string readFile(const char* file);
+  void printShaderLinkingError();
+  void printShaderCompilationErrorInfo(GLuint shaderId);
 
   // The handler to the shader program
   GLuint shaderProgram;
 
   // The handler to individual shader
-  GLuint vertexShader, fragmentShader;
+  std::vector<GLuint> shaderIds;
 };
