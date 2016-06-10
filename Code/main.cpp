@@ -7,6 +7,11 @@
 // GLFW
 #include <GLFW/glfw3.h>
 
+// GLM
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Shader.h"
 #include "Texture.h"
 
@@ -16,8 +21,9 @@
 #define LOG_SIZE 512
 
 #define VERTICES_ATTRIB_INDEX 0
-#define COLOR_ATTRIB_INDEX 1
-#define TEXTURE_ATTRIB_INDEX 2
+#define TEXTURE_ATTRIB_INDEX 1
+
+#define PI 3.14159265359
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void drawTriangle();
@@ -35,6 +41,7 @@ int main() {
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
+  // Cerate a GLFWwindow object that we can use for GLFW's functions
   GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL", nullptr, nullptr);
   if(window == nullptr) {
     std::cout << "Failed to create  GLFW window" << std::endl;
@@ -43,6 +50,10 @@ int main() {
   }
   glfwMakeContextCurrent(window);
 
+  // Set the required callback funcitons
+  glfwSetKeyCallback(window, keyCallback);
+
+  // Initialize GLAD to setup the OpenGL Function pointers
   if(!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
@@ -51,33 +62,66 @@ int main() {
   // Set Viewport size
   int width, height;
   glfwGetFramebufferSize(window, &width, &height);
+  // Define the viewport dimesions
   glViewport(0, 0, width, height);
 
-  glfwSetKeyCallback(window, keyCallback);
+  // Setup OpenGL options
+  glEnable(GL_DEPTH_TEST);
   
-  // Setup shader program
+  // Build and compile shader program
   Shader shader("../Shaders/shader.vert", "../Shaders/shader.frag");
 
-  // Triangle vertices
+  // Set up vertex data (and buffers) and attribute pointers
   GLfloat vertices[] = {
-    // Position         // Colors          // Texture Coords
-    0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 0.0f,  1.0f, 1.0f,   // Top Right
-    0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,   // Bottom Right
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,  0.0f, 0.0f,   // Bottom Left
-    -0.5f, 0.5f, 0.0f,  1.0f, 1.0f, 0.0f,  0.0f, 1.0f   // Top Left
-  };
-  
-  GLuint indices[] = {
-    0, 1, 3, // First Triangle
-    1, 2, 3  // Second Triangle
+    // Vertices           // Tex Coords
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
   };
 
   // Create VAO, VBO, EBO
   GLuint vao, vbo, ebo;
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
-  glGenBuffers(1, &ebo);
-
+ 
   // Bind VAO
   glBindVertexArray(vao);
 
@@ -85,30 +129,20 @@ int main() {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  // Copy the index array in a element buffer for OpenGL to use
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
   // Set the attributes pointers
+  // ===============================
 
   // Vertices attribute
-  glVertexAttribPointer(VERTICES_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *)0);
+  glVertexAttribPointer(VERTICES_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)0);
   glEnableVertexAttribArray(VERTICES_ATTRIB_INDEX);
 
-  // Color attribute
-  glVertexAttribPointer(COLOR_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
-  glEnableVertexAttribArray(COLOR_ATTRIB_INDEX);
-
   // Texture attribute
-  glVertexAttribPointer(TEXTURE_ATTRIB_INDEX, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *)(6 * sizeof(GLfloat)));
+  glVertexAttribPointer(TEXTURE_ATTRIB_INDEX, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
   glEnableVertexAttribArray(TEXTURE_ATTRIB_INDEX);
   
   // Unbind VBO
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-  // Unbind EBO
-  //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  
   // Unbind the VAO
   glBindVertexArray(0);
 
@@ -142,6 +176,20 @@ int main() {
   // Free resources
   glBindTexture(GL_TEXTURE_2D, 0);
 
+  // Cube Positions
+  glm::vec3 cubePosition[] = {
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(2.0f, 5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f, -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3(2.4f, -0.4f, -3.5f),
+    glm::vec3(-1.7f, 3.0f, -7.5f),
+    glm::vec3(1.3f, -2.0f, -2.5f),
+    glm::vec3(1.5f, 2.0f, -2.5f),
+    glm::vec3(1.5f, 0.2f, -1.5f),
+    glm::vec3(-1.3f, 1.0f, -1.5f)
+  };
+
   // ===========================
   // Texture 2
   // ===========================
@@ -172,12 +220,12 @@ int main() {
     // Render
     // Clear the color buffer
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Activate shader
     shader.use();
 
-    // Bind texture
+    // Bind textures using texture units
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId1);
     glUniform1i(glGetUniformLocation(shader.program, "fTexture1"), 0);
@@ -185,14 +233,65 @@ int main() {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, textureId2);
     glUniform1i(glGetUniformLocation(shader.program, "fTexture2"), 1);
-    
 
-    // Draw triangle
+    // ===========================
+    // Coordinate Systems
+    // ===========================
+
+    // 3D
+    // ===========
+
+    // ===========================
+    // Camera
+    // ===========================
+    
+    // View Matrix
+    GLfloat radius = 10.0f;
+    GLfloat camx = sin(glfwGetTime()) * radius;
+    GLfloat camz = cos(glfwGetTime()) * radius;
+    glm::mat4 view;
+    // Translating the scene in the reverse direction of where we want to move
+    view = glm::lookAt(glm::vec3(camx, 0.0f, camz),
+		       glm::vec3(0.0f, 0.0f, 0.0f),
+		       glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // Projection Matrix
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(45.0f), (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
+
+    // Pass uniform model
+    GLuint modelLoc = glGetUniformLocation(shader.program, "model");
+    //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+    // Pass uniform view
+    GLuint viewLoc = glGetUniformLocation(shader.program, "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+    // Pass uniform projection
+    GLuint projectionLoc = glGetUniformLocation(shader.program, "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    // Draw Container
     glBindVertexArray(vao);
 
-    //  glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
+    // Draw the Cubes
+    for(GLuint i = 0; i < 10; i++) {
+      // Model Matrix
+      glm::mat4 model;
+      model = glm::translate(model, cubePosition[i]);
+      if((i % 3) == 0) {
+	// Rotate Cube through time
+	model = glm::rotate(model, (GLfloat)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+      } else {
+	// Rotate cube
+	GLfloat angle = glm::radians(20.0f * i);
+	model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+      }
+      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+      
+      glDrawArrays(GL_TRIANGLES, 0, 36); 
+    }
+    
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glBindVertexArray(0);
