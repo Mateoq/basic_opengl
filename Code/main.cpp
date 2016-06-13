@@ -14,6 +14,7 @@
 
 #include "Shader.h"
 #include "Texture.h"
+#include "Camera.h"
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -26,8 +27,23 @@
 #define PI 3.14159265359
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
-void drawTriangle();
-void drawSquare();
+void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
+void doMovement();
+
+// Global Variables
+static bool keys[1024];
+
+// Camera
+static Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+static bool firstMouseInput = true;
+
+static GLfloat lastX = WIDTH / 2;
+static GLfloat lastY = HEIGHT / 2;
+
+static GLfloat deltaTime = 0.0f;  // Time between current frame and last frame
+static GLfloat lastFrame = 0.0f;  // Time of last frame
+
 
 int main() {
   if(!glfwInit()) {
@@ -50,8 +66,19 @@ int main() {
   }
   glfwMakeContextCurrent(window);
 
+  // =====================================
   // Set the required callback funcitons
+  // =====================================
+
+  // Key input
   glfwSetKeyCallback(window, keyCallback);
+
+  // Mouse input
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetCursorPosCallback(window, mouseCallback);
+
+  // Scroll input
+  glfwSetScrollCallback(window, scrollCallback);
 
   // Initialize GLAD to setup the OpenGL Function pointers
   if(!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
@@ -214,8 +241,14 @@ int main() {
   
   // Game loop
   while(!glfwWindowShouldClose(window)) {
+    // Calculate average time of the frame
+    GLfloat currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+    
     // Check and call events
     glfwPollEvents();
+    doMovement();
 
     // Render
     // Clear the color buffer
@@ -251,13 +284,11 @@ int main() {
     GLfloat camz = cos(glfwGetTime()) * radius;
     glm::mat4 view;
     // Translating the scene in the reverse direction of where we want to move
-    view = glm::lookAt(glm::vec3(camx, 0.0f, camz),
-		       glm::vec3(0.0f, 0.0f, 0.0f),
-		       glm::vec3(0.0f, 1.0f, 0.0f));
+    view = camera.getViewMatrix();
 
     // Projection Matrix
     glm::mat4 projection;
-    projection = glm::perspective(glm::radians(45.0f), (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(camera.zoom), (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
 
     // Pass uniform model
     GLuint modelLoc = glGetUniformLocation(shader.program, "model");
@@ -310,11 +341,54 @@ int main() {
   return 0;
 }
 
+void doMovement() {
+  // Moving the camera
+  if(keys[GLFW_KEY_W]) {
+    camera.processKeyboard(CameraMovement::FORWARD, deltaTime);
+  }
+  if(keys[GLFW_KEY_S]) {
+    camera.processKeyboard(CameraMovement::BACKWARD, deltaTime);
+  }
+  if(keys[GLFW_KEY_A]) {
+    camera.processKeyboard(CameraMovement::LEFT, deltaTime);
+  }
+  if(keys[GLFW_KEY_D]) {
+    camera.processKeyboard(CameraMovement::RIGHT, deltaTime);
+  }
+}
+
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
   // When a user presses the escape key, we set the WindowShouldClose property to true,
   // closing the application
   if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, GL_TRUE);
   }
+
+  if(key >= 0 && key <= 1024) {
+    if(action == GLFW_PRESS) {
+      keys[key] = true;
+    } else if(action == GLFW_RELEASE) {
+      keys[key] = false;
+    }
+  }
+}
+
+void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+  if(firstMouseInput) {
+    lastX = xpos;
+    lastY = ypos;
+    firstMouseInput = false;
+  }
+  
+  GLfloat xOffset = xpos - lastX;
+  GLfloat yOffset = lastY - ypos; // Reversed since y-coordinates range from bottom to top
+  lastX = xpos;
+  lastY = ypos;
+
+  camera.processMouseMovement(xOffset, yOffset);
+}
+
+void scrollCallback(GLFWwindow* window, double xOffset, double yOffset) {
+  camera.processMouseScroll(yOffset);
 }
 
