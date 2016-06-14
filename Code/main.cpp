@@ -16,15 +16,16 @@
 #include "Texture.h"
 #include "Camera.h"
 
-#define WIDTH 800
-#define HEIGHT 600
+static int WIDTH = 800;
+static int HEIGHT = 600;
 
-#define LOG_SIZE 512
+static const int LOG_SIZE = 512;
 
-#define VERTICES_ATTRIB_INDEX 0
-#define TEXTURE_ATTRIB_INDEX 1
+static int VERTICES_ATTRIB_INDEX = 0;
+static int NORMAL_ATTRIB_INDEX = 1;
+static int TEXTURE_ATTRIB_INDEX = 2;
 
-#define PI 3.14159265359
+static float PI = 3.14159265359;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -44,6 +45,7 @@ static GLfloat lastY = HEIGHT / 2;
 static GLfloat deltaTime = 0.0f;  // Time between current frame and last frame
 static GLfloat lastFrame = 0.0f;  // Time of last frame
 
+static glm::vec3 lightPosition(1.2f, 1.0f, 2.0f);
 
 int main() {
   if(!glfwInit()) {
@@ -95,82 +97,100 @@ int main() {
   // Setup OpenGL options
   glEnable(GL_DEPTH_TEST);
   
-  // Build and compile shader program
-  Shader shader("../Shaders/shader.vert", "../Shaders/shader.frag");
+  // Light shaders
+  Shader lightShader("../Shaders/lightShader.vert", "../Shaders/lightShader.frag");
+  // Light object shaders
+  Shader lightObjectShader("../Shaders/lightObjectShader.vert", "../Shaders/lightObjectShader.frag");
 
   // Set up vertex data (and buffers) and attribute pointers
   GLfloat vertices[] = {
-    // Vertices           // Tex Coords
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+    // Vertices           // Normal vector
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
 
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
   };
 
-  // Create VAO, VBO, EBO
-  GLuint vao, vbo, ebo;
-  glGenVertexArrays(1, &vao);
+  // First set the container's VAO (and VBO)
+  //======================================
+  GLuint containerVAO, vbo;
+  glGenVertexArrays(1, &containerVAO);
   glGenBuffers(1, &vbo);
- 
-  // Bind VAO
-  glBindVertexArray(vao);
 
   // Copy vertices array in a buffer for OpenGl to use
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+  // Bind VAO
+  glBindVertexArray(containerVAO);
   // Set the attributes pointers
   // ===============================
 
   // Vertices attribute
-  glVertexAttribPointer(VERTICES_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)0);
+  glVertexAttribPointer(VERTICES_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
   glEnableVertexAttribArray(VERTICES_ATTRIB_INDEX);
 
-  // Texture attribute
-  glVertexAttribPointer(TEXTURE_ATTRIB_INDEX, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
-  glEnableVertexAttribArray(TEXTURE_ATTRIB_INDEX);
+  // Normal attribute
+  glVertexAttribPointer(NORMAL_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+  glEnableVertexAttribArray(NORMAL_ATTRIB_INDEX);
   
-  // Unbind VBO
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  // Texture attribute
+  //glVertexAttribPointer(TEXTURE_ATTRIB_INDEX, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+  //glEnableVertexAttribArray(TEXTURE_ATTRIB_INDEX);
 
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
   // Unbind the VAO
+  glBindVertexArray(0);
+
+  // Then, set the light's VAO (VBO stays the same)
+  //===========================
+  GLuint lightVAO;
+  glGenVertexArrays(1, &lightVAO);
+  glBindVertexArray(lightVAO);
+  // Only need to bind the VBO, the containe's VBO's data already contains the correct data.
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  // Set the vertex attributes (only position data for the lamp)
+  glVertexAttribPointer(VERTICES_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
+  glEnableVertexAttribArray(VERTICES_ATTRIB_INDEX);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 
   // Load and create textures
@@ -202,42 +222,6 @@ int main() {
   
   // Free resources
   glBindTexture(GL_TEXTURE_2D, 0);
-
-  // Cube Positions
-  glm::vec3 cubePosition[] = {
-    glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(2.0f, 5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3(2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f, 3.0f, -7.5f),
-    glm::vec3(1.3f, -2.0f, -2.5f),
-    glm::vec3(1.5f, 2.0f, -2.5f),
-    glm::vec3(1.5f, 0.2f, -1.5f),
-    glm::vec3(-1.3f, 1.0f, -1.5f)
-  };
-
-  // ===========================
-  // Texture 2
-  // ===========================
-  GLuint textureId2;
-  glGenTextures(1, &textureId2);
-  glBindTexture(GL_TEXTURE_2D, textureId2);
-
-  // Set the texture parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  // Set the texture filtering
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  // Load, create texture and generate mipmaps
-  texture.load(buffer, imageWidth, imageHeight, "../Assets/awesomeface.png");
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-  glGenerateMipmap(GL_TEXTURE_2D);
-
-  // Free resources
-  glBindTexture(GL_TEXTURE_2D, 0);
   
   // Game loop
   while(!glfwWindowShouldClose(window)) {
@@ -252,89 +236,92 @@ int main() {
 
     // Render
     // Clear the color buffer
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Activate shader
-    shader.use();
+    lightShader.use();
 
     // Bind textures using texture units
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureId1);
-    glUniform1i(glGetUniformLocation(shader.program, "fTexture1"), 0);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, textureId2);
-    glUniform1i(glGetUniformLocation(shader.program, "fTexture2"), 1);
+    glUniform1i(glGetUniformLocation(lightShader.program, "fTexture1"), 0);
 
     // ===========================
-    // Coordinate Systems
+    // Light
     // ===========================
+    GLint objectColorLoc = glGetUniformLocation(lightShader.program, "objectColor");
+    GLint lightColorLoc = glGetUniformLocation(lightShader.program, "lightColor");
+    glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
+    glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);
 
-    // 3D
-    // ===========
-
-    // ===========================
-    // Camera
-    // ===========================
+    // Light position
+    GLint lightPosLoc = glGetUniformLocation(lightShader.program, "lightPos");
+    glUniform3f(lightPosLoc, lightPosition.x, lightPosition.y, lightPosition.z);
     
     // View Matrix
-    GLfloat radius = 10.0f;
-    GLfloat camx = sin(glfwGetTime()) * radius;
-    GLfloat camz = cos(glfwGetTime()) * radius;
-    glm::mat4 view;
-    // Translating the scene in the reverse direction of where we want to move
-    view = camera.getViewMatrix();
+    glm::mat4 view = camera.getViewMatrix();
 
     // Projection Matrix
-    glm::mat4 projection;
-    projection = glm::perspective(glm::radians(camera.zoom), (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
 
     // Pass uniform model
-    GLuint modelLoc = glGetUniformLocation(shader.program, "model");
-    //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    GLuint modelLoc = glGetUniformLocation(lightShader.program, "model");
 
     // Pass uniform view
-    GLuint viewLoc = glGetUniformLocation(shader.program, "view");
+    GLuint viewLoc = glGetUniformLocation(lightShader.program, "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
     // Pass uniform projection
-    GLuint projectionLoc = glGetUniformLocation(shader.program, "projection");
+    GLuint projectionLoc = glGetUniformLocation(lightShader.program, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
     // Draw Container
-    glBindVertexArray(vao);
+    glBindVertexArray(containerVAO);
 
-    // Draw the Cubes
-    for(GLuint i = 0; i < 10; i++) {
-      // Model Matrix
-      glm::mat4 model;
-      model = glm::translate(model, cubePosition[i]);
-      if((i % 3) == 0) {
-	// Rotate Cube through time
-	model = glm::rotate(model, (GLfloat)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-      } else {
-	// Rotate cube
-	GLfloat angle = glm::radians(20.0f * i);
-	model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
-      }
-      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glm::mat4 model;
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
       
-      glDrawArrays(GL_TRIANGLES, 0, 36); 
-    }
+    glDrawArrays(GL_TRIANGLES, 0, 36); 
     
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glBindVertexArray(0);
 
-    shader.unuse();
+    // Draw the light object
+    // ======================
+    lightObjectShader.use();
+
+    // Get the location objects for the matrices in the light object
+    modelLoc = glGetUniformLocation(lightObjectShader.program, "model");
+    viewLoc = glGetUniformLocation(lightObjectShader.program, "view");
+    projectionLoc = glGetUniformLocation(lightObjectShader.program, "projection");
+
+    // Set matrices
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    model = glm::mat4();
+    model = glm::translate(model, lightPosition);
+    model = glm::scale(model, glm::vec3(0.2f));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+    glBindVertexArray(lightVAO);
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    glBindVertexArray(0);
+    
+    lightObjectShader.unuse();
+    lightShader.unuse();
     
     // Swap the buffers
     glfwSwapBuffers(window);
   }
 
   // Properly de-allocate all resources once they've outlived their purpose
-  glDeleteVertexArrays(1, &vao);
+  glDeleteVertexArrays(1, &containerVAO);
+  glDeleteVertexArrays(1, &lightVAO);
   glDeleteBuffers(1, &vbo);
     
   glfwTerminate();
