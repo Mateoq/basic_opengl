@@ -7,6 +7,11 @@ layout (location = 1) in vec3 normal;
 //out vec2 texCoord;
 out vec3 fNormal;
 out vec3 fragPos;
+out vec3 fLightPos;
+
+// We now define th uniform in the vertex shader and pass the "view space" lightPos to the fragment shader.
+// light is currently in world space.
+uniform vec3 lightPos;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -14,7 +19,8 @@ uniform mat4 projection;
 
 void main() {
   gl_Position = projection * view * model * vec4(position, 1.0f); // Directly give a vec3 to vec4's constructor
-  fragPos = vec3(model * vec4(position, 1.0f));
+  fragPos = vec3(view * model * vec4(position, 1.0f));
   //texCoord = vTexCoord;
-  fNormal = normal;
+  fNormal = mat3(transpose(inverse(view * model))) * normal;
+  fLightPos = vec3(view * vec4(lightPos, 1.0f)); // Transform world-space light position to view-space light position
 }

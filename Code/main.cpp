@@ -16,8 +16,8 @@
 #include "Texture.h"
 #include "Camera.h"
 
-static int WIDTH = 800;
-static int HEIGHT = 600;
+static int WIDTH = 1024;
+static int HEIGHT = 768;
 
 static const int LOG_SIZE = 512;
 
@@ -239,6 +239,12 @@ int main() {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Update light object position
+    GLfloat radius = 2.0f;
+    GLfloat lightX = sin(glfwGetTime()) * radius;
+    GLfloat lightZ = cos(glfwGetTime()) * radius;
+    lightPosition = glm::vec3(lightX, 1.0f, lightZ);
+
     // Activate shader
     lightShader.use();
 
@@ -258,6 +264,10 @@ int main() {
     // Light position
     GLint lightPosLoc = glGetUniformLocation(lightShader.program, "lightPos");
     glUniform3f(lightPosLoc, lightPosition.x, lightPosition.y, lightPosition.z);
+
+    // View position
+    GLint viewPosLoc = glGetUniformLocation(lightShader.program, "viewPos");
+    glUniform3f(viewPosLoc, camera.position.x, camera.position.y, camera.position.z);
     
     // View Matrix
     glm::mat4 view = camera.getViewMatrix();
