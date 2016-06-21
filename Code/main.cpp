@@ -148,6 +148,20 @@ int main() {
     -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
   };
 
+  // Cube Positions
+  glm::vec3 cubePosition[] = {
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(2.0f, 5.0f, -15.0f),
+    glm::vec3(-1.5f, -2.2f, -2.5f),
+    glm::vec3(-3.8f, -2.0f, -12.3f),
+    glm::vec3(2.4f, -0.4f, -3.5f),
+    glm::vec3(-1.7f, 3.0f, -7.5f),
+    glm::vec3(1.3f, -2.0f, -2.5f),
+    glm::vec3(1.5f, 2.0f, -2.5f),
+    glm::vec3(1.5f, 0.2f, -1.5f),
+    glm::vec3(-1.3f, 1.0f, -1.5f)
+  };
+
   // First set the container's VAO (and VBO)
   //======================================
   GLuint containerVAO, vbo;
@@ -257,7 +271,7 @@ int main() {
 
     // Render
     // Clear the color buffer
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Update light object position
@@ -312,8 +326,8 @@ int main() {
     glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
 
     // Light position
-    GLint lightPosLoc = glGetUniformLocation(lightShader.program, "lightPos");
-    glUniform3f(lightPosLoc, lightPosition.x, lightPosition.y, lightPosition.z);
+    GLint lightPosLoc = glGetUniformLocation(lightShader.program, "light.direction");
+    glUniform3f(lightPosLoc, -0.2f, -1.0f, -0.3f);
 
     // View position
     GLint viewPosLoc = glGetUniformLocation(lightShader.program, "viewPos");
@@ -341,8 +355,16 @@ int main() {
 
     glm::mat4 model;
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+    for(GLuint i = 0; i < 10; i++) {
+      model = glm::mat4();
+      model = glm::translate(model, cubePosition[i]);
+      GLfloat angle = glm::radians(20.0f * i);
+      model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
       
-    glDrawArrays(GL_TRIANGLES, 0, 36); 
+      glDrawArrays(GL_TRIANGLES, 0, 36); 
+    } 
     
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -361,14 +383,14 @@ int main() {
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    model = glm::mat4();
-    model = glm::translate(model, lightPosition);
-    model = glm::scale(model, glm::vec3(0.2f));
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    //model = glm::mat4();
+    //model = glm::translate(model, lightPosition);
+    //model = glm::scale(model, glm::vec3(0.2f));
+    //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
     glBindVertexArray(lightVAO);
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawArrays(GL_TRIANGLES, 0, 36); 
 
     glBindVertexArray(0);
     

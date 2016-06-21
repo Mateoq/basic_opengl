@@ -7,7 +7,8 @@ struct Material {
 };
 
 struct Light {
-  vec3 position;
+  //  vec3 position; // No longer necessary when using directional lights
+  vec3 direction;
 
   vec3 ambient;
   vec3 diffuse;
@@ -39,7 +40,7 @@ void main() {
   // =======================
   vec3 norm = normalize(fNormal);
   // Calculate and normalize the direction ligth vector
-  vec3 lightDirection = normalize(fLightPos - fragPos);
+  vec3 lightDirection = normalize(-light.direction);
   // Calculate the diffuse impact
   float diff = max(dot(norm, lightDirection), 0.0);
   vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, fTexCoords));
