@@ -215,13 +215,6 @@ int main() {
   glGenTextures(1, &diffuseMap);
   glBindTexture(GL_TEXTURE_2D, diffuseMap);
 
-  // Set the texture parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  // Set the texture filtering
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  
   // Load, create texture and generate mipmaps
   int imageWidth, imageHeight;
   std::vector<unsigned char> buffer;
@@ -233,6 +226,13 @@ int main() {
     
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
   glGenerateMipmap(GL_TEXTURE_2D);
+
+  // Set texture map parameters
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  // Set the texture filtering
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
   
   // Free resources
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -242,21 +242,34 @@ int main() {
   // ===========================
   GLuint specularMap;
   glGenTextures(1, &specularMap);
+  glBindTexture(GL_TEXTURE_2D, specularMap);
+
+  // Load, create texture and generate mipmaps
+  texture.load(buffer, imageWidth, imageHeight, "../Assets/container2_specular.png");
+
+  image = &buffer[0];
+  
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+  glGenerateMipmap(GL_TEXTURE_2D);
 
   // Set texture map parameters
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   // Set the texture filtering
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  // Load, create texture and generate mipmaps
-  texture.load(buffer, imageWidth, imageHeight, "../Assets/container2_specular.png");
-
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-  glGenerateMipmap(GL_TEXTURE_2D);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 
   glBindTexture(GL_TEXTURE_2D, 0);
+
+  // ===========================
+  // Materials
+  // ===========================
+  GLint materialDiffuseLoc = glGetUniformLocation(lightShader.program, "material.diffuse");
+  GLint materialSpecularLoc = glGetUniformLocation(lightShader.program, "material.specular");
+
+  // Set texture units
+  glUniform1i(materialDiffuseLoc, 0);
+  glUniform1i(materialSpecularLoc, 1);
   
   // Game loop
   while(!glfwWindowShouldClose(window)) {
@@ -284,50 +297,33 @@ int main() {
     lightShader.use();
 
     // ===========================
-    // Materials
-    // ===========================
-    GLint materialDiffuseLoc = glGetUniformLocation(lightShader.program, "material.diffuse");
-    GLint materialSpecularLoc = glGetUniformLocation(lightShader.program, "material.specular");
-    GLint materialShineLoc = glGetUniformLocation(lightShader.program, "material.shininess");
-
-    // Diffuse map
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, diffuseMap);
-    glUniform1i(materialDiffuseLoc, 0);
-
-    // Specular map
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, specularMap);
-    glUniform1i(materialSpecularLoc, 1);
-    
-    glUniform1f(materialShineLoc, 32.0f);
-
-    
-
-    // ===========================
     // Light
     // ===========================
-
-    glm::vec3 lightColor(1.0f);
-
-    glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
     
     GLint lightAmbientLoc = glGetUniformLocation(lightShader.program, "light.ambient");
     GLint lightDiffuseLoc = glGetUniformLocation(lightShader.program, "light.diffuse");
     GLint lightSpecularLoc = glGetUniformLocation(lightShader.program, "light.specular");
 
-    glUniform3f(lightAmbientLoc, ambientColor.x, ambientColor.y, ambientColor.z);
-    glUniform3f(lightDiffuseLoc, diffuseColor.x, diffuseColor.y, diffuseColor.z); // Let's darken the light a bit to fit the scene
+    glUniform3f(lightAmbientLoc, 0.2f, 0.2f, 0.2f);
+    glUniform3f(lightDiffuseLoc, 0.5f, 0.5f, 0.5f); // Let's darken the light a bit to fit the scene
     glUniform3f(lightSpecularLoc, 1.0f, 1.0f, 1.0f);
-    
-    // Object color
-    GLint objectColorLoc = glGetUniformLocation(lightShader.program, "objectColor");
-    glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
+
+    // ===========================
+    // Light Attenuation
+    // ===========================
+    // Constant value
+    glUniform1f(glGetUniformLocation(lightShader.program, "light.constant"), 1.0f);
+    // Linear value
+    glUniform1f(glGetUniformLocation(lightShader.program, "light.linear"), 0.09f);
+    // Quadratic value
+    glUniform1f(glGetUniformLocation(lightShader.program, "light.quadratic"), 0.032f);
+
+    GLint materialShineLoc = glGetUniformLocation(lightShader.program, "material.shininess");
+    glUniform1f(materialShineLoc, 32.0f);
 
     // Light position
-    GLint lightPosLoc = glGetUniformLocation(lightShader.program, "light.direction");
-    glUniform3f(lightPosLoc, -0.2f, -1.0f, -0.3f);
+    GLint lightPosLoc = glGetUniformLocation(lightShader.program, "light.position");
+    glUniform3f(lightPosLoc, lightPosition.x, lightPosition.y, lightPosition.z);
 
     // View position
     GLint viewPosLoc = glGetUniformLocation(lightShader.program, "viewPos");
@@ -350,11 +346,17 @@ int main() {
     GLuint projectionLoc = glGetUniformLocation(lightShader.program, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    // Draw Container
-    glBindVertexArray(containerVAO);
+    // Diffuse map
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, diffuseMap);
 
+    // Specular map
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, specularMap);
+
+    // Draw Container
     glm::mat4 model;
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glBindVertexArray(containerVAO);
 
     for(GLuint i = 0; i < 10; i++) {
       model = glm::mat4();
@@ -369,7 +371,7 @@ int main() {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glBindVertexArray(0);
-
+    // A light object is a bit useless  with a directional light since it has no origin
     // Draw the light object
     // ======================
     lightObjectShader.use();
@@ -383,10 +385,10 @@ int main() {
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    //model = glm::mat4();
-    //model = glm::translate(model, lightPosition);
-    //model = glm::scale(model, glm::vec3(0.2f));
-    //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    model = glm::mat4();
+    model = glm::translate(model, lightPosition);
+    model = glm::scale(model, glm::vec3(0.2f));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
     glBindVertexArray(lightVAO);
 
