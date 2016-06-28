@@ -48,6 +48,13 @@ static GLfloat lastFrame = 0.0f;  // Time of last frame
 
 static glm::vec3 lightPosition(1.2f, 1.0f, 2.0f);
 
+struct Light {
+  glm::vec3 color;
+  float constant;
+  float linear;
+  float quadratic;
+};
+
 int main() {
   if(!glfwInit()) {
     std::cout << "Failed to initialize GLFW" << std::endl;
@@ -174,11 +181,11 @@ int main() {
   // Light colors
   // =====================================
   // Horror
-  glm::vec3 pointLightColors[] = {
-    glm::vec3(0.1f, 0.1f, 0.1f),
-    glm::vec3(0.1f, 0.1f, 0.1f),
-    glm::vec3(0.1f, 0.1f, 0.1f),
-    glm::vec3(0.3f, 0.1f, 0.1f)
+  Light pointLightColors[] = {
+    Light({ glm::vec3(0.1f, 0.1f, 0.1f), 1.0f, 0.14f, 0.07f }),
+    Light({ glm::vec3(0.1f, 0.1f, 0.1f), 1.0f, 0.14f, 0.07f }),
+    Light({ glm::vec3(0.1f, 0.1f, 0.1f), 1.0f, 0.22f, 0.20f }),
+    Light({ glm::vec3(0.3f, 0.1f, 0.1f), 1.0f, 0.14f, 0.07f })
   };
 
   // First set the container's VAO (and VBO)
@@ -333,14 +340,23 @@ int main() {
 		  pointLightPositions[lightIndex].y,
 		  pointLightPositions[lightIndex].z);
       glUniform3f(glGetUniformLocation(lightShader.program, ("pointLights[" + std::to_string(lightIndex) + "].ambient").c_str()),
-		  pointLightColors[lightIndex].x * 0.1f, pointLightColors[lightIndex].y * 0.1f, pointLightColors[lightIndex].z * 0.1f);
+		  pointLightColors[lightIndex].color.x * 0.1f,
+		  pointLightColors[lightIndex].color.y * 0.1f,
+		  pointLightColors[lightIndex].color.z * 0.1f);
       glUniform3f(glGetUniformLocation(lightShader.program, ("pointLights[" + std::to_string(lightIndex) + "].diffuse").c_str()),
-		  pointLightColors[lightIndex].x, pointLightColors[lightIndex].y, pointLightColors[lightIndex].z);
+		  pointLightColors[lightIndex].color.x,
+		  pointLightColors[lightIndex].color.y,
+		  pointLightColors[lightIndex].color.z);
       glUniform3f(glGetUniformLocation(lightShader.program, ("pointLights[" + std::to_string(lightIndex) + "].specular").c_str()),
-		  pointLightColors[lightIndex].x, pointLightColors[lightIndex].y, pointLightColors[lightIndex].z);
-      glUniform1f(glGetUniformLocation(lightShader.program, ("pointLights[" + std::to_string(lightIndex) + "].constant").c_str()), 1.0f);
-      glUniform1f(glGetUniformLocation(lightShader.program, ("pointLights[" + std::to_string(lightIndex) + "].linear").c_str()), 0.09f);
-      glUniform1f(glGetUniformLocation(lightShader.program, ("pointLights[" + std::to_string(lightIndex) + "].quadratic").c_str()), 0.032f);
+		  pointLightColors[lightIndex].color.x,
+		  pointLightColors[lightIndex].color.y,
+		  pointLightColors[lightIndex].color.z);
+      glUniform1f(glGetUniformLocation(lightShader.program, ("pointLights[" + std::to_string(lightIndex) + "].constant").c_str()),
+		  pointLightColors[lightIndex].constant);
+      glUniform1f(glGetUniformLocation(lightShader.program, ("pointLights[" + std::to_string(lightIndex) + "].linear").c_str()),
+		  pointLightColors[lightIndex].linear);
+      glUniform1f(glGetUniformLocation(lightShader.program, ("pointLights[" + std::to_string(lightIndex) + "].quadratic").c_str()),
+		  pointLightColors[lightIndex].quadratic);
     }
 
     // Spot Light
@@ -348,11 +364,11 @@ int main() {
 		camera.position.x, camera.position.y, camera.position.z);
     glUniform3f(glGetUniformLocation(lightShader.program, "spotLight.direction"),
 		camera.front.x, camera.front.y, camera.front.z);
-    glUniform1f(glGetUniformLocation(lightShader.program, "spotLight.cutOff"), glm::cos(glm::radians(12.5f)));
+    glUniform1f(glGetUniformLocation(lightShader.program, "spotLight.cutOff"), glm::cos(glm::radians(10.0f)));
     // Soft edges
-    glUniform1f(glGetUniformLocation(lightShader.program, "spotLight.outerCutOff"), glm::cos(glm::radians(17.5f)));
-    glUniform3f(glGetUniformLocation(lightShader.program, "spotLight.ambient"), 0.05f, 0.05f, 0.05f);
-    glUniform3f(glGetUniformLocation(lightShader.program, "spotLight.diffuse"), 0.8f, 0.8f, 0.8f);
+    glUniform1f(glGetUniformLocation(lightShader.program, "spotLight.outerCutOff"), glm::cos(glm::radians(15.0f)));
+    glUniform3f(glGetUniformLocation(lightShader.program, "spotLight.ambient"), 0.0f, 0.0f, 0.0f);
+    glUniform3f(glGetUniformLocation(lightShader.program, "spotLight.diffuse"), 1.0f, 1.0f, 1.0f);
     glUniform3f(glGetUniformLocation(lightShader.program, "spotLight.specular"), 1.0f, 1.0f, 1.0f);
     glUniform1f(glGetUniformLocation(lightShader.program, "spotLight.constant"), 1.0f);
     glUniform1f(glGetUniformLocation(lightShader.program, "spotLight.linear"), 0.09f);
@@ -425,6 +441,12 @@ int main() {
       model = glm::translate(model, pointLightPositions[objectIndex]);
       model = glm::scale(model, glm::vec3(0.2f));
       glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+      // Include light color
+      glUniform3f(glGetUniformLocation(lightObjectShader.program, "lightColor"),
+		  pointLightColors[objectIndex].color.x,
+		  pointLightColors[objectIndex].color.y,
+		  pointLightColors[objectIndex].color.z);
 
       glDrawArrays(GL_TRIANGLES, 0, 36); 
     }
