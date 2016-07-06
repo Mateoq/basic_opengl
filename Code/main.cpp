@@ -13,6 +13,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// Assimp
+#include <assimp/Importer.hpp>
+
 #include "Shader.h"
 #include "Texture.h"
 #include "Camera.h"
@@ -56,6 +59,7 @@ struct Light {
 };
 
 int main() {
+  Assimp::Importer importer;
   if(!glfwInit()) {
     std::cout << "Failed to initialize GLFW" << std::endl;
     return -1;
