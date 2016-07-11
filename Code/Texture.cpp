@@ -1,6 +1,6 @@
 #include "Texture.h"
 
-int Texture::load(std::vector<unsigned char>& outImage, int& imageWidth, int& imageHeight, const char* filename) {
+int Texture2D::load(std::vector<unsigned char>& outImage, int& imageWidth, int& imageHeight, const char* filename) {
   std::ifstream file(filename, std::ios::binary);
   std::vector<unsigned char> buffer;
 
@@ -26,7 +26,37 @@ int Texture::load(std::vector<unsigned char>& outImage, int& imageWidth, int& im
   return decodeFile(outImage, imageWidth, imageHeight, &buffer[0], (int)buffer.size());
 }
 
-int Texture::decodeFile(std::vector<unsigned char>& out_image, int& image_width, int& image_height, const unsigned char* in_png, size_t in_size, bool convert_to_rgba32) {
+GLuint Texture2D::loadTexture(const GLchar* filename, const std::string directory) {
+  GLuint textureId;
+  glGenTextures(1, &textureId);
+  glBindTexture(GL_TEXTURE_2D, textureId);
+  
+  // Load, create texture and generate mipmaps
+  int imageWidth, imageHeight;
+  std::vector<unsigned char> buffer;
+
+  int c =this->load(buffer, imageWidth, imageHeight, (directory + '/' + filename).c_str());
+
+  // Image buffer
+  GLubyte* image = &buffer[0];
+    
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  // Set texture map parameters
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  // Set the texture filtering
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  
+  // Free resources
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  return textureId;
+}
+
+int Texture2D::decodeFile(std::vector<unsigned char>& out_image, int& image_width, int& image_height, const unsigned char* in_png, size_t in_size, bool convert_to_rgba32) {
   // picoPNG version 20101224
   // Copyright (c) 2005-2010 Lode Vandevenne
   //

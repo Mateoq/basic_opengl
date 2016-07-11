@@ -9,6 +9,11 @@
 // GLM
 #include <glm/glm.hpp>
 
+// ASSIMP
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include "Shader.h"
 
 #define VERTEX_ATTRIB_INDEX 0
@@ -24,27 +29,28 @@ struct Vertex {
 struct Texture {
   GLuint id;
   std::string type;
+  aiString path;
 };
 
 class Mesh {
  public:
-  Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
+  Mesh(std::vector<Vertex *>& vertices, std::vector<GLuint *>& indices, std::vector<Texture *>& textures);
 
-  void draw(Shader shader);
+  void draw(Shader* shader);
 
   // Getters
-  inline std::vector<Vertex> getVertices() { return this->mVertices; }
-  inline std::vector<GLuint> getIndices() { return this->mIndices; }
-  inline std::vector(Texture) getTextures() { return this->mTextures; }
+  inline std::vector<Vertex *> getVertices() { return this->mVertices; }
+  inline std::vector<GLuint *> getIndices() { return this->mIndices; }
+  inline std::vector<Texture *> getTextures() { return this->mTextures; }
 
  private:
   // Render Data
   GLuint mVAO, mVBO, mEBO;
   // Mesh Data
-  std::vector<Vertex> mVertices;
-  std::vector<GLuint> mIndices;
-  std::vector<Texture> mTextures;
+  std::vector<Vertex *> mVertices;
+  std::vector<GLuint *> mIndices;
+  std::vector<Texture *> mTextures;
 
   void setupMesh();
-}
+};
 
