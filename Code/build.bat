@@ -22,5 +22,5 @@ if not defined DevEnvDir (
 
 robocopy %LIBDIR% . *.dll
 
-cl -FC -Zi /EHsc /MP  ..\Code\main.cpp ..\Code\Shader.cpp -I%INCDIR% %SDL2_LIBDIR%\SDL2.lib %SDL2_LIBDIR%\SDL2main.lib %LIBDIR%\glad.c  -link /machine:%TARGET% -subsystem:CONSOLE
+cl -FC -Zi /EHsc /MP  ..\Code\main.cpp ..\Code\Shader.cpp ..\Code\Texture.cpp ..\Code\Camera.cpp ..\Code\Model.cpp ..\Code\Mesh.cpp -I%INCDIR% %LIBDIR%\glfw3dll.lib %LIBDIR%\assimpd.lib %LIBDIR%\glad.cpp user32.lib gdi32.lib shell32.lib opengl32.lib  -link /NODEFAULTLIB:library /machine:%TARGET% -subsystem:CONSOLE
 popd

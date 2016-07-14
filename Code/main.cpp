@@ -69,7 +69,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
   // Cerate a GLFWwindow object that we can use for GLFW's functions
-  GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL", nullptr, nullptr);
+  GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL", glfwGetPrimaryMonitor(), NULL);
   if(window == nullptr) {
     std::cout << "Failed to create  GLFW window" << std::endl;
     glfwTerminate();
