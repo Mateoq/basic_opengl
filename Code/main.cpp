@@ -69,7 +69,7 @@ int main() {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
   // Cerate a GLFWwindow object that we can use for GLFW's functions
-  GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL", glfwGetPrimaryMonitor(), NULL);
+  GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL", NULL, NULL);
   if(window == nullptr) {
     std::cout << "Failed to create  GLFW window" << std::endl;
     glfwTerminate();
@@ -108,94 +108,9 @@ int main() {
   
   // Light shaders
   Shader modelShader("../Shaders/modelLoading.vert", "../Shaders/modelLoading.frag");
-  // Light object shaders
-  Shader lightObjectShader("../Shaders/lightObjectShader.vert", "../Shaders/lightObjectShader.frag");
 
   // Load models
-  Model sampleModel("../Assets/Models/Nanosuit/nanosuit.obj");
-
-  // Set up vertex data (and buffers) and attribute pointers
-  GLfloat vertices[] = {
-   // Positions           
-    -0.5f, -0.5f, -0.5f,  
-     0.5f, -0.5f, -0.5f,   
-     0.5f,  0.5f, -0.5f, 
-     0.5f,  0.5f, -0.5f, 
-    -0.5f,  0.5f, -0.5f, 
-    -0.5f, -0.5f, -0.5f, 
-
-    -0.5f, -0.5f,  0.5f, 
-     0.5f, -0.5f,  0.5f, 
-     0.5f,  0.5f,  0.5f, 
-     0.5f,  0.5f,  0.5f, 
-    -0.5f,  0.5f,  0.5f, 
-    -0.5f, -0.5f,  0.5f, 
-
-    -0.5f,  0.5f,  0.5f, 
-    -0.5f,  0.5f, -0.5f, 
-    -0.5f, -0.5f, -0.5f, 
-    -0.5f, -0.5f, -0.5f, 
-    -0.5f, -0.5f,  0.5f, 
-    -0.5f,  0.5f,  0.5f, 
-
-     0.5f,  0.5f,  0.5f, 
-     0.5f,  0.5f, -0.5f, 
-     0.5f, -0.5f, -0.5f, 
-     0.5f, -0.5f, -0.5f, 
-     0.5f, -0.5f,  0.5f, 
-     0.5f,  0.5f,  0.5f, 
-
-    -0.5f, -0.5f, -0.5f, 
-     0.5f, -0.5f, -0.5f, 
-     0.5f, -0.5f,  0.5f, 
-     0.5f, -0.5f,  0.5f, 
-    -0.5f, -0.5f,  0.5f, 
-    -0.5f, -0.5f, -0.5f, 
-
-    -0.5f,  0.5f, -0.5f, 
-     0.5f,  0.5f, -0.5f, 
-     0.5f,  0.5f,  0.5f, 
-     0.5f,  0.5f,  0.5f, 
-    -0.5f,  0.5f,  0.5f, 
-    -0.5f,  0.5f, -0.5f
-  };
-
-  // Light objects positions
-  glm::vec3 pointLightPositions[] = {
-    glm::vec3(0.7f, 0.2f, 2.0f),
-    glm::vec3(2.3f, -3.3f, -4.0f),
-    glm::vec3(-4.0f, 2.0f, -12.0f),
-    glm::vec3(0.0f, 0.0f, -3.0f)
-  };
-
-  // Light colors
-  // =====================================
-  // Horror
-  Light pointLightColors[] = {
-    Light({ glm::vec3(0.1f, 0.1f, 0.1f), 1.0f, 0.14f, 0.07f }),
-    Light({ glm::vec3(0.1f, 0.1f, 0.1f), 1.0f, 0.14f, 0.07f }),
-    Light({ glm::vec3(0.1f, 0.1f, 0.1f), 1.0f, 0.22f, 0.20f }),
-    Light({ glm::vec3(0.3f, 0.1f, 0.1f), 1.0f, 0.14f, 0.07f })
-  };
-
-  // First set the container's VAO (and VBO)
-  //======================================
-  GLuint vbo;
-  glGenBuffers(1, &vbo);
-
-  // Then, set the light's VAO (VBO stays the same)
-  //===========================
-  GLuint lightVAO;
-  glGenVertexArrays(1, &lightVAO);
-  glBindVertexArray(lightVAO);
-  // Only need to bind the VBO, the containe's VBO's data already contains the correct data.
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  // Set the vertex attributes (only position data for the lamp)
-  glVertexAttribPointer(VERTEX_ATTRIB_INDEX, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *)0);
-  glEnableVertexAttribArray(VERTEX_ATTRIB_INDEX);
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
+  Model sampleModel("../Assets/Models/Nanosuit/nanosuit2.obj");
   
   // Game loop
   while(!glfwWindowShouldClose(window)) {
@@ -210,75 +125,11 @@ int main() {
 
     // Render
     // Clear the color buffer
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Activate shader
     modelShader.use();
-
-    // ===========================
-    // Light
-    // ===========================
-
-    // Directional Light
-    glUniform3f(glGetUniformLocation(modelShader.program, "directionLight.direction"), -0.2f, -1.0f, -0.3f);
-    glUniform3f(glGetUniformLocation(modelShader.program, "directionLight.ambient"), 0.0f, 0.0f, 0.0f);
-    glUniform3f(glGetUniformLocation(modelShader.program, "directionLight.diffuse"), 0.05f, 0.05f, 0.05f);
-    glUniform3f(glGetUniformLocation(modelShader.program, "directionLight.specular"), 0.2f, 0.2f, 0.2f);
-
-    // Point Lights
-    for(GLuint lightIndex = 0; lightIndex < 4; lightIndex++) {
-      glUniform3f(glGetUniformLocation(modelShader.program,
-				       ("pointLights[" + std::to_string(lightIndex) + "].positon").c_str()),
-		  pointLightPositions[lightIndex].x,
-		  pointLightPositions[lightIndex].y,
-		  pointLightPositions[lightIndex].z);
-      glUniform3f(glGetUniformLocation(modelShader.program,
-				       ("pointLights[" + std::to_string(lightIndex) + "].ambient").c_str()),
-		  pointLightColors[lightIndex].color.x * 0.1f,
-		  pointLightColors[lightIndex].color.y * 0.1f,
-		  pointLightColors[lightIndex].color.z * 0.1f);
-      glUniform3f(glGetUniformLocation(modelShader.program,
-				       ("pointLights[" + std::to_string(lightIndex) + "].diffuse").c_str()),
-		  pointLightColors[lightIndex].color.x,
-		  pointLightColors[lightIndex].color.y,
-		  pointLightColors[lightIndex].color.z);
-      glUniform3f(glGetUniformLocation(modelShader.program,
-				       ("pointLights[" + std::to_string(lightIndex) + "].specular").c_str()),
-		  pointLightColors[lightIndex].color.x,
-		  pointLightColors[lightIndex].color.y,
-		  pointLightColors[lightIndex].color.z);
-      glUniform1f(glGetUniformLocation(modelShader.program,
-				       ("pointLights[" + std::to_string(lightIndex) + "].constant").c_str()),
-		  pointLightColors[lightIndex].constant);
-      glUniform1f(glGetUniformLocation(modelShader.program,
-				       ("pointLights[" + std::to_string(lightIndex) + "].linear").c_str()),
-		  pointLightColors[lightIndex].linear);
-      glUniform1f(glGetUniformLocation(modelShader.program,
-				       ("pointLights[" + std::to_string(lightIndex) + "].quadratic").c_str()),
-		  pointLightColors[lightIndex].quadratic);
-    }
-
-    // Spot Light
-    glUniform3f(glGetUniformLocation(modelShader.program, "spotLight.position"),
-		camera.position.x, camera.position.y, camera.position.z);
-    glUniform3f(glGetUniformLocation(modelShader.program, "spotLight.direction"),
-		camera.front.x, camera.front.y, camera.front.z);
-    glUniform1f(glGetUniformLocation(modelShader.program, "spotLight.cutOff"),
-		glm::cos(glm::radians(10.0f)));
-    // Soft edges
-    glUniform1f(glGetUniformLocation(modelShader.program, "spotLight.outerCutOff"),
-		glm::cos(glm::radians(15.0f)));
-    glUniform3f(glGetUniformLocation(modelShader.program, "spotLight.ambient"), 0.0f, 0.0f, 0.0f);
-    glUniform3f(glGetUniformLocation(modelShader.program, "spotLight.diffuse"), 1.0f, 1.0f, 1.0f);
-    glUniform3f(glGetUniformLocation(modelShader.program, "spotLight.specular"), 1.0f, 1.0f, 1.0f);
-    glUniform1f(glGetUniformLocation(modelShader.program, "spotLight.constant"), 1.0f);
-    glUniform1f(glGetUniformLocation(modelShader.program, "spotLight.linear"), 0.09f);
-    glUniform1f(glGetUniformLocation(modelShader.program, "spotLight.quadratic"), 0.032f);
-      
-    // View position
-    GLint viewPosLoc = glGetUniformLocation(modelShader.program, "viewPos");
-    glUniform3f(viewPosLoc, camera.position.x, camera.position.y, camera.position.z);
     
     // Transormation matrices
     glm::mat4 view = camera.getViewMatrix();
@@ -290,53 +141,19 @@ int main() {
 		       1, GL_FALSE, glm::value_ptr(view));
 
     // Draw the loaded model
-    sampleModel.draw(&modelShader);
-    
-    // A light object is a bit useless  with a directional light since it has no origin
-    // Draw the light object
-    // ======================
-    lightObjectShader.use();
-
-    // Get the location objects for the matrices in the light object
-    GLuint modelLoc = glGetUniformLocation(lightObjectShader.program, "model");
-    GLuint viewLoc = glGetUniformLocation(lightObjectShader.program, "view");
-    GLuint projectionLoc = glGetUniformLocation(lightObjectShader.program, "projection");
-
-    // Set matrices
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-    glBindVertexArray(lightVAO);
-
     glm::mat4 model;
-    for(GLint objectIndex = 0; objectIndex < 4; objectIndex++) {
-      model = glm::mat4();
-      model = glm::translate(model, pointLightPositions[objectIndex]);
-      model = glm::scale(model, glm::vec3(0.2f));
-      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-      // Include light color
-      glUniform3f(glGetUniformLocation(lightObjectShader.program, "lightColor"),
-		  pointLightColors[objectIndex].color.x,
-		  pointLightColors[objectIndex].color.y,
-		  pointLightColors[objectIndex].color.z);
-
-      glDrawArrays(GL_TRIANGLES, 0, 36); 
-    }
-
-    glBindVertexArray(0);
-    
-    lightObjectShader.unuse();
-    modelShader.unuse();
+    // Translate it down a bit so it's at the center of the scene
+    model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f));
+    // It's a bit too big for the scene, so scale it down
+    model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+    glUniformMatrix4fv(glGetUniformLocation(modelShader.program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    sampleModel.draw(&modelShader);
     
     // Swap the buffers
     glfwSwapBuffers(window);
   }
 
-  // Properly de-allocate all resources once they've outlived their purpose
-  glDeleteVertexArrays(1, &lightVAO);
-  glDeleteBuffers(1, &vbo);
-    
+  // Properly de-allocate all resources once they've outlived their purpose    
   glfwTerminate();
   return 0;
 }

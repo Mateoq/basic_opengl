@@ -12,12 +12,12 @@ void Model::draw(Shader* shader) {
 
 void Model::loadModel(std::string path) {
   // Read file via ASSIMP
-  Assimp::Importer import;
-  const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+  Assimp::Importer importer;
+  const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
   // Check for errors
   if(!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-    std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << std::endl;
+    std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
     return;
   }
 
@@ -36,6 +36,9 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
     aiMesh* mesh = scene->mMeshes[node->mMeshes[meshIndex]];
     this->mMeshes.push_back(this->processMesh(mesh, scene));
   }
+
+  if(node->mNumChildren == 0) { return; }
+  
   // After we've processed all of the meshes (if any) we then recursively process each of the children nodes
   for(GLuint childIndex = 0; childIndex < node->mNumChildren; childIndex++) {
     this->processNode(node->mChildren[childIndex], scene);
@@ -80,7 +83,7 @@ Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene) {
     
     vertices.push_back(&vertex);
   }
-  
+
   // Now walk through each of the mesh's faces (a face is a mesh its triangle)
   // and retrieve the corresponding vertex indices.
   for(GLuint faceIndex = 0; faceIndex < mesh->mNumFaces; faceIndex++) {
@@ -92,7 +95,7 @@ Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene) {
   }
 
   // Process material
-  if(mesh->mMaterialIndex != -1) {
+  if(mesh->mMaterialIndex > 0) {
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
     // We assume a convention for sampler names in the shaders. Each diffuse texture should be named
     // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER
@@ -102,14 +105,16 @@ Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene) {
     // Normal: texture_normalN
 
     // 1. Diffuse maps
+    aiTextureType textureType = aiTextureType_DIFFUSE;
     std::vector<Texture *> diffuseMaps = this->loadMaterialTextures(material,
-								  aiTextureType_DIFFUSE,
-								  "texture_diffuse");
+								    textureType,
+								    "texture_diffuse");
     textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
     // 2. Specular maps
-    std::vector<Texture *> specularMaps = this->loadMaterialTextures(material,
-								     aiTextureType_SPECULAR,
+    textureType = aiTextureType_SPECULAR;
+    std::vector<Texture *> specularMaps = this->loadMaterialTextures(material, 
+								     textureType,
 								     "texture_specular");
     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
   }
@@ -122,6 +127,7 @@ std::vector<Texture *> Model::loadMaterialTextures(aiMaterial* material,
 						   aiTextureType type,
 						   std::string typeName) {
   std::vector<Texture *> textures = {};
+  
   for(GLuint textureIndex = 0; textureIndex < material->GetTextureCount(type); textureIndex++) {
     aiString str;
     GLboolean skip = false;

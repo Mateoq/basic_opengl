@@ -5,6 +5,9 @@
 #include <string>
 #include <iostream>
 
+// GLAD
+#include <glad/glad.h>
+
 // Assimp
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
