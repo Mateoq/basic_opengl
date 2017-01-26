@@ -1,0 +1,79 @@
+# Blender MTL File: 'None'
+# Material Count: 6
+
+newmtl Arm
+Ns 94.117647
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/arm_dif.png
+map_Bump  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/arm_showroom_ddn.png
+map_Ks  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/arm_showroom_spec.png
+
+newmtl Body
+Ns 94.117647
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/body_dif.png
+map_Bump  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/body_showroom_ddn.png
+map_Ks  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/body_showroom_spec.png
+
+newmtl Glass
+Ns 94.117647
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/glass_dif.png
+map_Bump  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/glass_ddn.png
+
+newmtl Hand
+Ns 94.117647
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/hand_dif.png
+map_Bump  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/hand_showroom_ddn.png
+map_Ks  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/hand_showroom_spec.png
+
+newmtl Helmet
+Ns 94.117647
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/helmet_diff.png
+map_Bump  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/helmet_showroom_ddn.png
+map_Ks  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/helmet_showroom_spec.png
+
+newmtl Leg
+Ns 94.117647
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/leg_dif.png
+map_Bump  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/leg_showroom_ddn.png
+map_Ks  /Users/mquintero/Projects/Personal/GameDeveloping/basic_opengl_setup/Assets/Models/Nanosuit/leg_showroom_spec.png
