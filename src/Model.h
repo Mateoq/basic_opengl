@@ -14,17 +14,19 @@
 #include <assimp/postprocess.h>
 
 #include "Mesh.h"
-#include "Texture.h"
+#include "TextureLoader.h"
+
 
 class Model {
  public:
   // Constructor, expects a filepath to a 3D model
-  Model(std::string path);
+  Model(std::string path, TextureLoader& loader);
 
   // Draws the model, and thus all its meshes
   void draw(Shader* shader);
 
  private:
+  TextureLoader mTextureLoader;
   // Model data
   std::vector<Mesh *> mMeshes;
   std::string mDirectory;

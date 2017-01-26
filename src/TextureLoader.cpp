@@ -12,12 +12,12 @@ GLuint TextureLoader::loadTexture(const std::string imagePath) {
   // Determine the format of the image.
   // Note: The second paramter ('size') is currently unused,
   // and we should use 0 for it.
-  FREE_IMAGE_FORMAT format = FreeImage_GetFileType(fileName, 0);
+  FREE_IMAGE_FORMAT format = FreeImage_GetFileType(filename, 0);
 
   // Check if the image was not found
   if (format == -1) {
-    std::cout << "Could not found image: " << fileName << "!!" << std::endl;
-    return nullptr;
+    std::cout << "Could not found image: " << filename << "!!" << std::endl;
+    return -1;
   }
 
   // Image found, check its format
@@ -29,11 +29,11 @@ GLuint TextureLoader::loadTexture(const std::string imagePath) {
     // ...by getting the filetype from the filename extension (i.e. .PNG, .GIF etc.)
     // Note: This is slower and more error-prone that getting it from the file itself,
     // also, we can't use the 'U' (unicode) variant of this method as that's Windows only.
-    format = FreeImage_GetFIFFromFilename(fileName);
+    format = FreeImage_GetFIFFromFilename(filename);
 
     if (!FreeImage_FIFSupportsReading(format)) {
       std::cout << "Detected image format cannot be read!!" << std::endl;
-      return nullptr;
+      return -1;
     }
   }
 
@@ -84,9 +84,9 @@ GLuint TextureLoader::loadTexture(const std::string imagePath) {
 	    << "Size: " << imageWidth << "x" << imageHeight << std::endl;
 
   // Get a pointer to the texture data as an array of unsigned bytes.
-  std::unique_ptr<GLubyte> textureData = FreeImage_GetBits(bitmap32);
+  std::unique_ptr<GLubyte> textureData = std::make_unique<GLubyte>(FreeImage_GetBits(bitmap32));
 
-  GLuint textureId = this->setupGLTexture(textureData, imageWidth, imageHeight);
+  GLuint textureId = this->setupGLTexture(textureData, filename, imageWidth, imageHeight);
 
   // Unload the 32-bit colour bitmap
   FreeImage_Unload(bitmap32);
@@ -102,7 +102,7 @@ GLuint TextureLoader::loadTexture(const std::string imagePath) {
   return textureId;
 }
 
-GLuint TextureLoader::setupGLTexture(const GLubyte* textureData,
+GLuint TextureLoader::setupGLTexture(const GLubyte&& textureData,
 				     std::string textureName,
 				     int witdh, int height) {
   //Generate texture ID and load texture data
@@ -132,7 +132,7 @@ GLuint TextureLoader::setupGLTexture(const GLubyte* textureData,
   glBindTexture(GL_TEXTURE_2D, 0);
 
   if (!this->validateGLTexture(glError, textureName)) {
-    return nullptr;
+    return -1;
   }
 
   return textureId;

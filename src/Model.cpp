@@ -1,6 +1,7 @@
 #include "Model.h"
 
-Model::Model(std::string path) {
+Model::Model(std::string path, TextureLoader& loader) {
+  this->mTextureLoader = loader;
   this->loadModel(path);
 }
 
@@ -144,9 +145,8 @@ std::vector<Texture *> Model::loadMaterialTextures(aiMaterial* material,
 
     if(!skip) {
       Texture texture;
-      Texture2D textureLoader;
 
-      texture.id = textureLoader.loadTexture(str.C_Str(), this->mDirectory);
+      texture.id = this->mTextureLoader.loadTexture((std::string)this->mDirectory.c_str() + str.C_Str());
       texture.type = typeName;
       texture.path = str;
       textures.push_back(&texture);

@@ -54,7 +54,9 @@ add_executable(Game
   ${PROJECT_SOURCE_DIR}/src/Shader.cpp
   ${PROJECT_SOURCE_DIR}/src/Mesh.cpp
   ${PROJECT_SOURCE_DIR}/src/Model.cpp
-  ${PROJECT_SOURCE_DIR}/src/Texture.cpp
+  ${PROJECT_SOURCE_DIR}/src/TextureLoader.cpp
+  ${PROJECT_SOURCE_DIR}/src/Cube.cpp
+  ${PROJECT_SOURCE_DIR}/src/Plane.cpp
   ${PROJECT_SOURCE_DIR}/src/main.cpp
 )
 

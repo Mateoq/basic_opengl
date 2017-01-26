@@ -15,8 +15,11 @@ class Shader {
   void use();
   //Dispose the program
   void unuse();
+
+  GLuint getProgram() { return this->m_Program; } 
   
+ private:
   // The program ID
-  GLuint program;
+  GLuint m_Program;
 };
 

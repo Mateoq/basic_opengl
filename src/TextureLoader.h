@@ -14,10 +14,10 @@ class TextureLoader {
   GLuint loadTexture(const std::string imagePath);
 
  private:
-  GLuint setupGLTexture(const GLubyte* textureData,
+  GLuint setupGLTexture(const GLubyte&& textureData,
 			std::string textureName,
 			int witdh, int height);
   
   bool validateGLTexture(GLenum error, std::string textureName);
-}
+};
 

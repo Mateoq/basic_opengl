@@ -2,6 +2,7 @@
 
 // STD
 #include <iostream>
+#include <vector>
 
 // GLAD
 #include <glad/glad.h>
@@ -11,36 +12,36 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "World.h"
 #include "Shader.h"
+#include "Texture.h"
 #include "Constants.h"
 
-namespace Shapes {
+namespace Graphics {
   class Cube {
   public:
     Cube();
 
-    void setUp(Shader shader);
-    void render();
+    void setUp(Shader& shader);
 
-    void setTexture(TextureType type, const GLuint texture);
+    void setTexture(Texture newTexture);
 
-    // Matrix setters
+    // Matrix Modifiers
     void scale(glm::vec3 scaleVector);
     void rotate(glm::vec3 rotateDirection, float angle);
     void translate(glm::vec3 translateVector);
 
-    void update();
+    // Core functionality
+    void update(World& world);
     void render();
-
-    float[] getVertices() const { return this->m_Vertices; }
+    
   private:
     Shader m_Shader;
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 projection;
+    glm::mat4 m_Model;
+    glm::mat4 m_View;
+    glm::mat4 m_Projection;
     GLuint m_VAO, m_VBO;
-    GLuint m_DiffTexture;
-    GLuint m_SpecularTexture;
+    std::vector<Texture> m_Textures;
     GLfloat m_Vertices[] = {
       // Positions          // Texture Coords
       -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "Camera.h"
+
 namespace Game {
-  class World {
-    
+  struct World {
+    int screenWidth, screenHeight;
+    Camera camera;
   };
 }
 
