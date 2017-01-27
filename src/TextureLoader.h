@@ -14,7 +14,7 @@ class TextureLoader {
   GLuint loadTexture(const std::string imagePath);
 
  private:
-  GLuint setupGLTexture(const GLubyte&& textureData,
+  GLuint setupGLTexture(std::unique_ptr<GLubyte>  textureData,
 			std::string textureName,
 			int witdh, int height);
   

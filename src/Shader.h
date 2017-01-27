@@ -9,6 +9,8 @@
 
 class Shader {
  public:
+  // Default constructor
+  Shader() {};
   // Constructor reads and builds the shader
   Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
   // Use the program

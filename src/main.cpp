@@ -20,56 +20,60 @@
 #include "World.h"
 #include "Cube.h"
 #include "Plane.h"
-#include "Contants.h"
+#include "Constants.h"
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 void doMovement();
-bool init();
+GLFWwindow* init();
 
 // Global Variables
 const int WIDTH = 1024;
 const int HEIGHT = 768;
 
-const bool keys[1024];
+static bool keys[1024] {false};
 
-const Game::World world;
+static bool firstMouseInput = true;
+
+static GLfloat lastX = WIDTH / 2;
+static GLfloat lastY = HEIGHT / 2;
+
+// Delta Time
+static GLfloat deltaTime = 0.0f;  // Time between current frame and last frame
+static GLfloat lastFrame = 0.0f;  // Time of last frame
+
+Game::World world;
 
 int main() {
   // Init core
-  if (!init()) {
+  auto window = init();
+  if (window == nullptr) {
     return -1;
   }
   
   // Set up variables
-  // Game world
-  const glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
-  world = { WIDTH, HEIGHT, cameraPosition };
-  const bool firstMouseInput = true;
-
-  const GLfloat lastX = WIDTH / 2;
-  const GLfloat lastY = HEIGHT / 2;
-
-  // Delta Time
-  const GLfloat deltaTime = 0.0f;  // Time between current frame and last frame
-  const GLfloat lastFrame = 0.0f;  // Time of last frame
+  // Game world;
+  world.window = window;
+  world.screenWidth = WIDTH;
+  world.screenHeight = HEIGHT;
+  world.camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
   // Setup texture loader
-  TextureLoader textureLoader();
+  TextureLoader textureLoader;
 
   // Set up shaders
   Shader shader("../shaders/advanced.vert", "../shaders/advanced.frag");
 
   // Load textures
   Graphics::Texture metal = {
-    TextureLoader.loadTexture("../assets/metal.png"),
+    textureLoader.loadTexture("../assets/metal.png"),
     "metal",
     TextureType::DIFFUSE
   };
 
   Graphics::Texture marble = {
-    TextureLoader.loadTexture("../assets/marble.jpg"),
+    textureLoader.loadTexture("../assets/marble.jpg"),
     "marble",
     TextureType::DIFFUSE
   };
@@ -78,17 +82,19 @@ int main() {
   std::unique_ptr<Graphics::Cube> cube = std::make_unique<Graphics::Cube>();
   cube->setUp(shader);
   cube->setTexture(marble);
+  cube->translate(glm::vec3(-1.0f, 0.0f, -1.0f));
 
   std::unique_ptr<Graphics::Cube> cube2 = std::make_unique<Graphics::Cube>();
   cube2->setUp(shader);
   cube2->setTexture(marble);
+  cube2->translate(glm::vec3(2.0f, 0.0f, 0.0f));
   
   std::unique_ptr<Graphics::Plane> plane = std::make_unique<Graphics::Plane>();
   plane->setUp(shader);
   plane->setTexture(metal);
   
   // Game loop
-  while(!glfwWindowShouldClose(window)) {
+  while(!glfwWindowShouldClose(world.window)) {
     // Calculate average time of the frame
     GLfloat currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -105,11 +111,9 @@ int main() {
 
 
     // Render Graphics
-    cube->translate(glm::vec3(-1.0f, 0.0f, -1.0f));
     cube->update(world);
     cube->render();
 
-    cube2->translate(glm::vec3(2.0f, 0.0f, 0.0f));
     cube2->update(world);
     cube2->render();
 
@@ -117,7 +121,7 @@ int main() {
     plane->render();
     
     // Swap the buffers
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(world.window);
   }
 
   // Properly de-allocate all resources once they've outlived their purpose    
@@ -125,10 +129,10 @@ int main() {
   return 0;
 }
 
-bool init() {
+GLFWwindow* init() {
   if(!glfwInit()) {
     std::cout << "Failed to initialize GLFW" << std::endl;
-    return false;
+    return nullptr;
   }
   
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -142,7 +146,7 @@ bool init() {
   if(window == nullptr) {
     std::cout << "Failed to create  GLFW window" << std::endl;
     glfwTerminate();
-    return false;
+    return nullptr;
   }
   glfwMakeContextCurrent(window);
 
@@ -165,18 +169,20 @@ bool init() {
   // Initialize GLAD to setup the OpenGL Function pointers
   if(!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
     std::cout << "Failed to initialize GLAD" << std::endl;
-    return false;
+    return nullptr;
   }
 
   // Set Viewport size
-  glViewport(0, 0, WIDTH, HEIGHT);
+  int width, height;
+  glfwGetFramebufferSize(window, &width, &height);
+  glViewport(0, 0, width, height);
 
   // Setup OpenGL options
   glEnable(GL_DEPTH_TEST);
   // Set depth test func to always, is the same as disable
   glDepthFunc(GL_ALWAYS);
 
-  return true;
+  return window;
 }
 
 void doMovement() {

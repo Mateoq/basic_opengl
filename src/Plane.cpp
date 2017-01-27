@@ -16,10 +16,10 @@ namespace Graphics {
     glBindVertexArray(this->m_VAO);
     glBindBuffer(GL_ARRAY_BUFFER, this->m_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(this->m_Vertices), &this->m_Vertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(Attribs::VERTICES);
-    glVertexAttribPointer(Attribs::VERTICES, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(Attribs::TEX_COORDS);
-    glVertexAttribPointer(Attribs::TEX_COORDS, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray((GLuint)Attribs::VERTICES);
+    glVertexAttribPointer((GLuint)Attribs::VERTICES, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray((GLuint)Attribs::TEX_COORDS);
+    glVertexAttribPointer((GLuint)Attribs::TEX_COORDS, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
     glBindVertexArray(0);
   }
 
@@ -29,7 +29,7 @@ namespace Graphics {
 
   // Matrix Modifiers
   void Plane::scale(glm::vec3 scaleVector) {
-    this->m_Model = glm::sale(this->m_Model, scaleVector);
+    this->m_Model = glm::scale(this->m_Model, scaleVector);
   }
   
   void Plane::rotate(glm::vec3 rotateDirection, float angle) {
@@ -42,7 +42,7 @@ namespace Graphics {
 
   // Core functionality.
   // Update the object matrices
-  void Plane::update(World& world) {
+  void Plane::update(Game::World& world) {
     this->m_View = world.camera.getViewMatrix();
     this->m_Projection = glm::perspective(world.camera.zoom,
 					  (float)world.screenWidth / (float)world.screenHeight,
@@ -55,15 +55,15 @@ namespace Graphics {
 
     // Set uniform param to the view matrix
     glUniformMatrix4fv(glGetUniformLocation(this->m_Shader.getProgram(), "view"),
-		       1, GL_FALSE, glm::value_ptt(this->m_View));
+		       1, GL_FALSE, glm::value_ptr(this->m_View));
 
     // Set uniform param to the projection matrix
     glUniformMatrix4fv(glGetUniformLocation(this->m_Shader.getProgram(), "projection"),
-		       1, GL_FALSE, glm::value_ptt(this->m_Projection));
+		       1, GL_FALSE, glm::value_ptr(this->m_Projection));
 
     // Set uniform param to the model matrix
     glUniformMatrix4fv(glGetUniformLocation(this->m_Shader.getProgram(), "model"),
-		       1, GL_FALSE, glm::value_ptt(this->m_Model));
+		       1, GL_FALSE, glm::value_ptr(this->m_Model));
 
     // Bind vertex array
     glBindVertexArray(this->m_VAO);

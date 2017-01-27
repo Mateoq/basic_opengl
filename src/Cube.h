@@ -24,7 +24,7 @@ namespace Graphics {
 
     void setUp(Shader& shader);
 
-    void setTexture(Texture newTexture);
+    void setTexture(Texture& newTexture);
 
     // Matrix Modifiers
     void scale(glm::vec3 scaleVector);
@@ -32,7 +32,7 @@ namespace Graphics {
     void translate(glm::vec3 translateVector);
 
     // Core functionality
-    void update(World& world);
+    void update(Game::World& world);
     void render();
     
   private:
@@ -42,7 +42,7 @@ namespace Graphics {
     glm::mat4 m_Projection;
     GLuint m_VAO, m_VBO;
     std::vector<Texture> m_Textures;
-    GLfloat m_Vertices[] = {
+    GLfloat m_Vertices[36 * 5] = {
       // Positions          // Texture Coords
       -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
       0.5f, -0.5f, -0.5f,  1.0f, 0.0f,

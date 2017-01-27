@@ -24,7 +24,7 @@ namespace Graphics {
 
     void setUp(Shader& shader);
 
-    void setTexture(Texture newTexture);
+    void setTexture(Texture& newTexture);
 
     // Matrix Modifiers
     void scale(glm::vec3 scaleVector);
@@ -32,7 +32,7 @@ namespace Graphics {
     void translate(glm::vec3 translateVector);
 
     // Core functionality
-    void update(World& world);
+    void update(Game::World& world);
     void render();
 
   private:
@@ -42,7 +42,7 @@ namespace Graphics {
     glm::mat4 m_Projection;
     GLuint m_VAO, m_VBO;
     std::vector<Texture> m_Textures;
-    const float m_Vertices[] = {
+    const float m_Vertices[30] = {
       // Positions          // Texture Coords (note we set these higher than 1 that together with GL_REPEAT as texture wrapping mode will cause the floor texture to repeat)
       5.0f,  -0.5f,  5.0f,  2.0f, 0.0f,
       -5.0f, -0.5f,  5.0f,  0.0f, 0.0f,

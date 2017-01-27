@@ -80,13 +80,13 @@ GLuint TextureLoader::loadTexture(const std::string imagePath) {
   // Get image info
   int imageWidth = FreeImage_GetWidth(bitmap32);
   int imageHeight = FreeImage_GetHeight(bitmap32);
-  std::cout << "Image: " << imagePath
+  std::cout << "Image: " << imagePath << std::endl
 	    << "Size: " << imageWidth << "x" << imageHeight << std::endl;
 
   // Get a pointer to the texture data as an array of unsigned bytes.
-  std::unique_ptr<GLubyte> textureData = std::make_unique<GLubyte>(FreeImage_GetBits(bitmap32));
+  std::unique_ptr<GLubyte> textureData(FreeImage_GetBits(bitmap32));
 
-  GLuint textureId = this->setupGLTexture(textureData, filename, imageWidth, imageHeight);
+  GLuint textureId = this->setupGLTexture(std::move(textureData), filename, imageWidth, imageHeight);
 
   // Unload the 32-bit colour bitmap
   FreeImage_Unload(bitmap32);
@@ -96,30 +96,30 @@ GLuint TextureLoader::loadTexture(const std::string imagePath) {
   }
 
   if (textureId == -1) {
-    return nullptr;
+    return -1;
   }
 
   return textureId;
 }
 
-GLuint TextureLoader::setupGLTexture(const GLubyte&& textureData,
+GLuint TextureLoader::setupGLTexture(std::unique_ptr<GLubyte> textureData,
 				     std::string textureName,
-				     int witdh, int height) {
+				     int width, int height) {
   //Generate texture ID and load texture data
   GLuint textureId;
-  glGenTexture(1, &textureId);
+  glGenTextures(1, &textureId);
 
   // Assign texture to ID
   glBindTexture(GL_TEXTURE_2D, textureId);
-  glTextImage2D(GL_TEXTURE_2D, // Type of texture
+  glTexImage2D(GL_TEXTURE_2D, // Type of texture
 		0, // Mipmap level
-		GL_RGB, // Internal format
+		GL_RGBA, // Internal format
 		width, // Width of the texture
 		height, // Height of the texture
 		0, // Border in pixels
-		GL_RGB, // Data format
+		GL_RGBA, // Data format
 		GL_UNSIGNED_BYTE, // Type of texture data
-		textureData); // The image data
+	       (const void*)textureData.release()); // The image data
   glGenerateMipmap(GL_TEXTURE_2D);
   
   // Parameters
